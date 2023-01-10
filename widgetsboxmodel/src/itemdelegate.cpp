@@ -1,6 +1,7 @@
 // Copyright (c) 2014-2024 Manuel Schneider
 
 #include "itemdelegate.h"
+#include <QAbstractTextDocumentLayout>
 #include <QPainter>
 #include <QPixmapCache>
 #include <albert/frontend.h>
@@ -75,32 +76,23 @@ void ItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &options,
     contentRect.setTop(option.rect.y()+option.rect.height()/2-(fontMetrics1.height()+fontMetrics2.height())/2);
     contentRect.setBottom(option.rect.y()+option.rect.height()/2+(fontMetrics1.height()+fontMetrics2.height())/2);
     QRect textRect = contentRect.adjusted(0,-2,0,-fontMetrics2.height()-2);
-    QRect subTextRect = contentRect.adjusted(0,fontMetrics1.height()-2,0,-2);
+
+    QAbstractTextDocumentLayout::PaintContext ctx;
+    ctx.palette.setColor(QPalette::Text, option.widget->palette().color(
+      (option.state & QStyle::State_Selected) ? QPalette::HighlightedText : QPalette::WindowText));
 
     // Draw item text
-    QString text = fontMetrics1.elidedText(index.data((int)albert::ItemRoles::TextRole).toString(),
-                                           option.textElideMode, textRect.width());
-    painter->setFont(font1);
-    option.widget->style()->drawItemText(painter,
-                                         textRect,
-                                         option.displayAlignment,
-                                         option.palette,
-                                         option.state & QStyle::State_Enabled,
-                                         text,
-                                         (option.state & QStyle::State_Selected) ? QPalette::HighlightedText : QPalette::WindowText);
+    QTextDocument doc;
+    doc.setDefaultFont(font1);
+    painter->translate(textRect.left(), textRect.top());
+    doc.setHtml(index.data((int)albert::ItemRoles::TextRole).toString());
+    doc.documentLayout()->draw(painter, ctx);
 
     // Draw item subtext
-    text = fontMetrics2.elidedText(index.data((int)albert::ItemRoles::SubTextRole).toString(),
-                                   option.textElideMode, subTextRect.width());
-    painter->setFont(font2);
-    option.widget->style()->drawItemText(painter,
-                                         subTextRect,
-                                         Qt::AlignBottom|Qt::AlignLeft,
-                                         option.palette,
-                                         option.state & QStyle::State_Enabled,
-                                         text,
-                                         (option.state & QStyle::State_Selected) ? QPalette::HighlightedText : QPalette::WindowText);
-
+    doc.setDefaultFont(font2);
+    painter->translate(0, textRect.height()-4);
+    doc.setHtml(index.data((int)albert::ItemRoles::SubTextRole).toString());
+    doc.documentLayout()->draw(painter, ctx);
 
     //    // Test
     //    painter->drawRect(option.rect);
