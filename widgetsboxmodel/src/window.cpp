@@ -800,6 +800,40 @@ bool Window::eventFilter(QObject *watched, QEvent *event)
                 }
                 break;
 
+            case Qt::Key_U:
+                if (keyEvent->modifiers().testFlag(Qt::ControlModifier)){
+                    QKeyEvent e(QEvent::KeyPress, Qt::Key_PageUp, keyEvent->modifiers().setFlag(Qt::ControlModifier, false));
+                    QApplication::sendEvent(input_line, &e);
+                    return true;
+                }
+                break;
+
+            case Qt::Key_D:
+                if (keyEvent->modifiers().testFlag(Qt::ControlModifier)){
+                    QKeyEvent e(QEvent::KeyPress, Qt::Key_PageDown, keyEvent->modifiers().setFlag(Qt::ControlModifier, false));
+                    QApplication::sendEvent(input_line, &e);
+                }
+                break;
+
+            case Qt::Key_W:
+                if (keyEvent->modifiers().testFlag(Qt::ControlModifier)){
+                    QString text = input_line->text();
+                    int endPos = input_line->cursorPosition();
+                    int pos = endPos;
+                    pos -= 1;
+                    while (text[pos].isSpace() && pos >= 0) {
+                        pos -= 1;
+                    }
+                    while (!text[pos].isSpace() && pos >= 0) {
+                        pos -= 1;
+                    }
+                    pos += 1;
+                    text.remove(pos, endPos - pos);
+                    input_line->setText(text);
+                    input_line->setCursorPosition(pos);
+                }
+                break;
+
             case Qt::Key_Comma:{
                 if (keyEvent->modifiers() == Qt::ControlModifier || keyEvent->modifiers() == Qt::AltModifier){
                     showSettings();
