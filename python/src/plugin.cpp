@@ -146,7 +146,6 @@ void Plugin::initPythonInterpreter() const
     DEBG << "Initializing Python interpreter";
     PyConfig config;
     PyConfig_InitIsolatedConfig(&config);
-    config.site_import = 0;
     dumpPyConfig(config);
     if (auto status = Py_InitializeFromConfig(&config); PyStatus_Exception(status))
         throw runtime_error(Plugin::tr("Failed initializing the interpreter: %1 %2")
